@@ -2,6 +2,7 @@ from flask import Flask, send_from_directory, render_template, request
 from flask_cors import CORS, cross_origin
 
 from MathService import MathService
+from dto import GraphsDto, FloatingFreqDto
 
 
 class Application:
@@ -49,12 +50,15 @@ class Application:
         @instance.app.route('/graphs/', methods=['POST'])
         @cross_origin()
         def graphs():
-            s = request
-            return '11'
+            file = request.files['file']
+            transform_type = request.form['transformType']
+            return instance.math_service.create_graphs(GraphsDto(file, transform_type)).to_json()
 
         @instance.app.route('/freq/', methods=['POST'])
         def freq():
-            instance.app.logger.info(str(request))
+            values = request.json['values']
+            max_freq = request.form['maxFreq']
+            return instance.math_service.create_graphs(FloatingFreqDto(values, max_freq)).to_json()
 
 
 app = Application(MathService())
