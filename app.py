@@ -50,15 +50,21 @@ class Application:
         @instance.app.route('/graphs/', methods=['POST'])
         @cross_origin()
         def graphs():
-            file = request.files['file']
-            transform_type = request.form['transformType']
-            return instance.math_service.create_graphs(GraphsDto(file, transform_type)).to_json()
+            try:
+                file = request.files['file']
+                transform_type = request.form['transformType']
+                return instance.math_service.create_graphs(GraphsDto(file, transform_type)).to_json()
+            except Exception as e:
+                return e.message, 400
 
         @instance.app.route('/freq/', methods=['POST'])
         def freq():
-            values = request.json['values']
-            max_freq = request.form['maxFreq']
-            return instance.math_service.create_graphs(FloatingFreqDto(values, max_freq)).to_json()
+            try:
+                values = request.json['values']
+                max_freq = request.form['maxFreq']
+                return instance.math_service.create_graphs(FloatingFreqDto(values, max_freq)).to_json()
+            except Exception as e:
+                return e.message, 400
 
 
 app = Application(MathService())
