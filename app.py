@@ -6,7 +6,7 @@ from dto import GraphsDto, FloatingFreqDto
 
 
 class Application:
-    app = Flask(__name__, template_folder='src/ui/', static_folder='src/ui/')
+    app = Flask(__name__, template_folder='ui/', static_folder='ui/static/')
     cors = CORS(app)
 
     def __init__(self, math_service):
@@ -29,19 +29,19 @@ class Application:
 
         @instance.app.route('/')
         def index():
-            return render_template('ui/index.html')
+            return render_template('index.html')
 
         @instance.app.route('/js/<path:path>')
         def send_js(path):
-            return send_from_directory('src/ui/js', path)
+            return send_from_directory('js', path)
 
         @instance.app.route('/img/<path:path>')
         def send_img(path):
-            return send_from_directory('src/ui/img', path)
+            return send_from_directory('img', path)
 
         @instance.app.route('/css/<path:path>')
         def send_css(path):
-            return send_from_directory('src/ui/css', path)
+            return send_from_directory('css', path)
 
         @instance.app.route('/tmp/<path:path>')
         def send_tmp(path):
