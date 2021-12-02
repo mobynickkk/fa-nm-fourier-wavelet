@@ -58,6 +58,7 @@ class Application:
                 return e.message, 400
 
         @instance.app.route('/freq/', methods=['POST'])
+        @cross_origin()
         def freq():
             try:
                 values = request.json['values']
