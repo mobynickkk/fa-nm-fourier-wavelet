@@ -8,14 +8,8 @@ from dto import FloatingFreqDto, GraphsDto, CalculatedGraphsDto, ImageDto, MainI
 
 class MathService:
 
-    def __get_first_lower(self, collection, x):
-        for i, item in enumerate(collection):
-            if item < x:
-                return i, item
-        return len(collection) - 1, collection[-1]
-
     def __get_sliced_array(self, collection, x):
-        return collection[:self.__get_first_lower(collection, x)[0]]
+        return filter(lambda t: t < x, collection)
 
     def __calculate_forward_fft(self, x, y):
         diff = (x[-1] - x[0])
@@ -52,7 +46,7 @@ class MathService:
 
         return CalculatedGraphsDto(MainImageDto('Спектрограмма разложения',
                                                 'data:image/png;base64,' + spec1_b64,
-                                                min(freqs),
+                                                min(freqs) + freqs[int(len(freqs) // 20)],
                                                 max(freqs),
                                                 (freqs[-1] - freqs[0]) / 10),
                                    ImageDto('Спектрограмма разложения', 'data:image/png;base64,' + spec2_b64),
@@ -69,30 +63,24 @@ class MathService:
     def create_cutted_graphs(self, dto: FloatingFreqDto):
         x, y, freqs, four_vals = dto.values
 
-        four_vals = np.array(list(map(complex, four_vals)))
-        four_vals = self.__get_sliced_array(four_vals, dto.maxFrequency)
+        freqs = list(self.__get_sliced_array(freqs, dto.maxFrequency))
+        four_vals = np.array(list(map(complex, four_vals)))[:len(freqs)]
 
         yf = np.fft.irfft(four_vals)
 
-        spec1_b64 = self.__get_graphic_b64([], [])
-
         spec2_b64 = self.__get_graphic_b64(freqs, np.abs(four_vals) / len(freqs))
 
-        source_b64 = self.__get_graphic_b64([], [])
+        target_b64 = self.__get_graphic_b64(x[:len(yf)], yf)
 
-        target_b64 = self.__get_graphic_b64(x, yf)
+        extended_yf = np.array([yf[i] if i < len(yf) else 0 for i in range(len(y))])
 
-        dispersion = ((yf - y) ** 2 / len(y)).sum()
+        dispersion = ((y - extended_yf) ** 2 / len(y)).sum()
 
-        return CalculatedGraphsDto(MainImageDto('Спектрограмма разложения',
-                                                'data:image/png;base64,' + spec1_b64,
-                                                min(freqs),
-                                                max(freqs),
-                                                (freqs[-1] - freqs[0]) / 10),
+        return CalculatedGraphsDto(MainImageDto('Спектрограмма разложения', '', 0, 0, 0),
                                    ImageDto('Результат обрезания частот (спектрограмма)',
                                             'data:image/png;base64,' + spec2_b64),
-                                   ImageDto('Изначальный сигнал', 'data:image/png;base64,' + source_b64),
+                                   ImageDto('Изначальный сигнал', ''),
                                    ImageDto('Восстановленный сигнал (с обрезанными частотами)',
                                             'data:image/png;base64,' + target_b64),
-                                   [x, y, freqs, list(map(str, four_vals))],
+                                   [x, y, dto.values[2], list(map(str, dto.values[3]))],
                                    dispersion)

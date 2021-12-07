@@ -55,17 +55,22 @@ class Application:
                 transform_type = request.form['transformType']
                 return instance.math_service.create_graphs(GraphsDto(file, transform_type)).to_json()
             except Exception as e:
-                return e.message, 400
+                return e.description if hasattr(e, 'description') else 'Что-то пошло не так', 400
 
         @instance.app.route('/freq/', methods=['POST'])
         @cross_origin()
         def freq():
             try:
                 values = request.json['values']
-                max_freq = request.form['maxFreq']
-                return instance.math_service.create_graphs(FloatingFreqDto(values, max_freq)).to_json()
+                max_freq = request.json['maxFrequency']
+                return instance.math_service.create_cutted_graphs(FloatingFreqDto(values, max_freq)).to_json()
             except Exception as e:
-                return e.message, 400
+                return e.description \
+                           if hasattr(e, 'description') \
+                           else (e.args[0]
+                                 if e.args
+                                 else 'Что-то пошло не так'), \
+                       400
 
 
 app = Application(MathService())
